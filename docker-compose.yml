@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data/images:/app/data/images
+      - ./data/database:/app/data/database/database.db
+    environment:
+      - ENV=production
+      - DB_PATH=/app/data/database/database.db
+    restart: unless-stopped
