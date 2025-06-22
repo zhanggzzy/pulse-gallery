@@ -1,27 +1,14 @@
 # src/script/import_images.py
 
 import os
-import sys
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from src.backend.models.models import Image, Base
-from dotenv import load_dotenv
+from src.backend.config import IMAGE_DIR, IMAGE_DIR_ABS, DB_PATH, DB_PATH_ABS
 
-load_dotenv()
-
-image_dir = os.getenv("IMAGE_DIR")
-db_path = os.getenv("DB_PATH")
-
-if not image_dir or not db_path:
+if not IMAGE_DIR or not DB_PATH:
     raise ValueError("IMAGE_DIR and DB_PATH environment variables must be set.")
-
-db_url = f"sqlite:///{db_path}"
-engine = create_engine(db_url, echo=False)
-SessionLocal = sessionmaker(bind=engine)
-
 
 
 def find_all_images(image_dir):
@@ -29,9 +16,13 @@ def find_all_images(image_dir):
     image_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp'}
 
     for root, _, files in os.walk(image_dir):
+        print(f"[LOG] Scanning directory: {root}")
         for file in files:
             if os.path.splitext(file)[1].lower() in image_extensions:
-                yield os.path.join(root, file)
+                # add relative path from IMAGE_DIR_ABS to the file
+                relative_path = os.path.relpath(os.path.join(root, file), IMAGE_DIR_ABS)
+                print(f"[LOG] Image file found: {relative_path}")
+                yield relative_path
 
 
 def import_images():
@@ -40,8 +31,7 @@ def import_images():
     count_new = 0
     count_existing = 0
 
-    for filepath in find_all_images(image_dir):
-        filepath = os.path.abspath(filepath)
+    for filepath in find_all_images(IMAGE_DIR_ABS):
         filename = os.path.basename(filepath)
 
         exists = session.query(Image).filter_by(filepath=filepath).first()
@@ -62,4 +52,14 @@ def import_images():
 
 
 if __name__ == "__main__":
+    print(f"[LOG] Importing images from directory: {IMAGE_DIR_ABS}")
+
+    db_url = f"sqlite:///{DB_PATH_ABS}"
+    print(f"[LOG] Using database URL: {db_url}")
+
+    engine = create_engine(db_url, echo=False)
+    Base.metadata.create_all(engine)
+
+    SessionLocal = sessionmaker(bind=engine)
+
     import_images()
