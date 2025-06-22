@@ -6,11 +6,10 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "32600:8000"
     volumes:
       - ./data/images:/app/data/images
-      - ./data/database:/app/data/database/database.db
-    environment:
-      - ENV=production
-      - DB_PATH=/app/data/database/database.db
+      - ./data/database:/app/data/database/
+    env_file:
+      - .env
     restart: unless-stopped
