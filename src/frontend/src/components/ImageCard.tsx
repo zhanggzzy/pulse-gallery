@@ -40,7 +40,7 @@ export default function ImageCard() {
                 {image && !loading && (
                     <motion.img
                         key={key}
-                        src={`http://localhost:8000/images/${image.name}`}
+                        src={`/images/${image.name}`}
                         alt={image.name}
                         initial={{ x: 300, opacity: 0 }}
                         animate={{ x: 0, opacity: 1 }}
