@@ -5,6 +5,7 @@ from src.backend.api import image
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.routing import APIRoute
+from fastapi.responses import RedirectResponse
 from src.backend.config import DEBUG_MODE, IMAGE_DIR_ABS, is_prod
 
 
@@ -14,7 +15,10 @@ app = FastAPI(title="Pulse Gallery API", version="0.0.1")
 
 if is_prod():
     app.mount("/images", StaticFiles(directory="data/images"), name="images")
-    app.mount("/", StaticFiles(directory="static", html=True), name="frontend")
+    app.mount("/static", StaticFiles(directory="static", html=True), name="frontend")
+    @app.get("/")
+    def root():
+        return RedirectResponse(url="/static/index.html")
 else:
     app.mount("/images", StaticFiles(directory=IMAGE_DIR_ABS), name="images")
 
