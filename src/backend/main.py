@@ -7,13 +7,20 @@ from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 import os
 
-
-load_dotenv()
-image_dir = os.getenv("IMAGE_DIR")
-
 app = FastAPI(title="Pulse Gallery API", version="0.0.1")
 
-app.mount("/images", StaticFiles(directory=image_dir), name="images")
+# Load environment variables from .env file
+load_dotenv()
+
+is_prod = os.getenv("ENV") == "production"
+
+if is_prod:
+    app.mount("/images", StaticFiles(directory="data/images"), name="images")
+    app.mount("/", StaticFiles(directory="static", html=True), name="frontend")
+else:
+    image_dir = os.getenv("IMAGE_DIR")
+    app.mount("/images", StaticFiles(directory=image_dir), name="images")
+
 app.include_router(image.router, prefix="/api/image")
 app.add_middleware(
     CORSMiddleware,
